@@ -1,8 +1,13 @@
+import logging
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.event import async_call_later  # Direct import
 
 from custom_components.pv_forecast_globema.const import CONF_FILTER_THE_STUFF, DOMAIN
+from custom_components.pv_forecast_globema.data_fetcher import fetch_data
+from custom_components.pv_forecast_globema.sensor import GlobemaSensor
+
+_LOGGER = logging.getLogger(__package__ + __name__)
 
 
 async def async_setup(hass: HomeAssistant, config: dict):
@@ -10,19 +15,11 @@ async def async_setup(hass: HomeAssistant, config: dict):
     return True
 
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
-    """Set up PV Forecast Globema from a config entry."""
-    hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = entry.data
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
+    """Set up sensors for PV Forecast Globema."""
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
-    # Forward setup to the sensor platform
-    await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
-
-    # Log the configuration option
-    filter_the_stuff = entry.data.get(CONF_FILTER_THE_STUFF, False)
-    async_call_later(
-        0, lambda: hass.components.logger.getLogger(__name__).info(
-            f"Filter the Stuff: {'Enabled' if filter_the_stuff else 'Disabled'}"
-        )
-    )
-    return True
+    sensors = [
+        GlobemaSensor(sensor_data["area"], coordinator) for sensor_data in coordinator.data
+    ]
+    async_add_entities(sensors, True)

@@ -1,6 +1,9 @@
+import logging
+
 import aiohttp
 
 API_URL = "https://prognozer.globema.pl/api/layers/20005/geojson?outputFormat=application/json"
+_LOGGER = logging.getLogger(__package__ + __name__)
 
 
 async def fetch_data():
@@ -15,7 +18,7 @@ async def fetch_data():
             for feature in raw_data.get("features", []):
                 properties = feature.get("properties", {})
                 sensors_data.append({
-                    "name": properties.get("nazwa"),
+                    "area": properties.get("nazwa"),
                     "today": properties.get("slonce_dzis_proc"),
                     "tomorrow": properties.get("slonce_jutro_proc"),
                     "day_after": properties.get("slonce_pojutrze_proc"),
