@@ -1,5 +1,4 @@
 {
   "name": "PV Forecast Globema",
-  "render_readme": true,
-  "country": ["PL"]
+  "render_readme": true
 }
