@@ -2,10 +2,9 @@
   "domain": "pv_forecast_globema",
   "name": "PV Forecast Globema",
   "codeowners": ["@mateuszjaje"],
-  "config_flow": true,
   "requirements": ["requests"],
   "documentation": "https://gitlab.com/mateuszjaje/ha_globema_prognozer",
   "iot_class": "local_polling",
   "issue_tracker": "https://gitlab.com/mateuszjaje/ha_globema_prognozer/-/issues",
-  "version": "0.1.1"
+  "version": "0.1.2"
 }
