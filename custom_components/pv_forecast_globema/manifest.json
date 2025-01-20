@@ -5,6 +5,7 @@
   "requirements": ["requests"],
   "documentation": "https://gitlab.com/mateuszjaje/ha_globema_prognozer",
   "iot_class": "local_polling",
+  "config_flow": true,
   "issue_tracker": "https://gitlab.com/mateuszjaje/ha_globema_prognozer/-/issues",
   "version": "0.1.2"
 }
