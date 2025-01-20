@@ -22,9 +22,10 @@ def fetch_data():
     sensors = []
 
     for feature in data["features"]:
-        if feature['id'] != 'wojewodztwo.43':
-            continue
+        # if feature['id'] != 'wojewodztwo.43':
+        #     continue
         properties = feature["properties"]
+
         # Create a filtered dictionary with only the positive keys
         filtered_data = {key: properties[key] for key in TRACKED_KEYS if key in properties}
         sensors.append(filtered_data)
