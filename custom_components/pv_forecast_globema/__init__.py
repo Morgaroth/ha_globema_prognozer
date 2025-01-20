@@ -16,7 +16,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     hass.data[DOMAIN][entry.entry_id] = entry.data
 
     # Forward setup to the sensor platform
-    hass.config_entries.async_setup_platforms(entry, ["sensor"])
+    await hass.config_entries.async_forward_entry_setups(entry, ["sensor"])
 
     # Log the configuration option
     filter_the_stuff = entry.data.get(CONF_FILTER_THE_STUFF, False)
