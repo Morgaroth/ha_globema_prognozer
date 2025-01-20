@@ -1,26 +1,44 @@
 from homeassistant import config_entries
+from homeassistant.helpers import config_validation as cv
 import voluptuous as vol
-import homeassistant.helpers.config_validation as cv
-
-from custom_components.pv_forecast_globema.const import DOMAIN
-
+from .const import DOMAIN
+from .sensor import fetch_data
 
 class PVForecastGlobemaConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle a config flow for PV Forecast Globema."""
-
     VERSION = 1
 
+    def __init__(self):
+        self.available_options = []
+
     async def async_step_user(self, user_input=None):
-        """Handle the initial step."""
         if user_input is not None:
             return self.async_create_entry(title="PV Forecast Globema", data=user_input)
 
-        # Configuration schema
+        # Fetch options directly using fetch_data
+        try:
+            data = await fetch_data()
+            self.available_options = [item["name"] for item in data]
+        except Exception as e:
+            self.available_options = []
+            self.hass.components.logger.getLogger(__name__).error(
+                "Failed to fetch options: %s", e
+            )
+
+        # Fallback in case no options are available
+        if not self.available_options:
+            return self.async_abort(reason="no_data_available")
+
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Optional("filter_the_stuff", default=False): cv.boolean,
+                    vol.Optional(
+                        "selected_sensors",
+                        default=[],
+                    ): vol.All(
+                        cv.ensure_list,
+                        vol.In(self.available_options),
+                    )
                 }
             ),
         )

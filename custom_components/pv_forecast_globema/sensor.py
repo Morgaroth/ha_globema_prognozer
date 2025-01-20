@@ -1,58 +1,57 @@
-"""Sensor platform for PV Forecast Globema."""
-import logging
-
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-
 from .const import DOMAIN
 
-_LOGGER = logging.getLogger(__package__ + __name__)
+
+async def fetch_data():
+    import aiohttp
+    async with aiohttp.ClientSession() as session:
+        async with session.get(
+                "https://prognozer.globema.pl/api/layers/20005/geojson?outputFormat=application/json") as response:
+            response.raise_for_status()
+            raw_data = await response.json()
+            return [
+                {
+                    "name": item["properties"]["nazwa"],
+                    "today": item["properties"].get("slonce_dzis_proc"),
+                    "tomorrow": item["properties"].get("slonce_jutro_proc"),
+                    "day_after": item["properties"].get("slonce_pojutrze_proc"),
+                }
+                for item in raw_data.get("features", [])
+            ]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_entities):
-    """Set up sensors for PV Forecast Globema."""
-    coordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = hass.data[DOMAIN][entry.entry_id]["coordinator"]
+    selected_sensors = hass.data[DOMAIN][entry.entry_id]["selected_sensors"]
 
     sensors = [
         GlobemaSensor(sensor_data["name"], coordinator)
         for sensor_data in coordinator.data
+        if sensor_data["name"] in selected_sensors
     ]
     async_add_entities(sensors, True)
 
 
 class GlobemaSensor(SensorEntity):
-    """Representation of a PV Forecast Globema sensor."""
-
     def __init__(self, name, coordinator):
-        """Initialize the sensor."""
         self._name = f"PV Forecast {name}"
         self.coordinator = coordinator
-        self._data = next(
-            (item for item in coordinator.data if item["name"] == name), {}
-        )
+        self._data = next((item for item in coordinator.data if item["name"] == name), {})
         self._state = self._data.get("today")
 
     @property
     def name(self):
-        """Return the name of the sensor."""
         return self._name
 
     @property
     def state(self):
-        """Return the state of the sensor."""
         return self._state
 
     @property
     def extra_state_attributes(self):
-        """Return additional attributes."""
-        return self.coordinator.data
+        return self._data
 
     async def async_update(self):
-        """Fetch new data for the sensor."""
         await self.coordinator.async_request_refresh()
-        for item in self.coordinator.data:
-            if item["name"] == self._name.split("PV Forecast ")[1]:
-                self._state = item["today"]
-                self._data = item
-                break
