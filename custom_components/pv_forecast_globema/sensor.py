@@ -1,4 +1,6 @@
 """Sensor platform for Prognozer."""
+import logging
+
 import requests
 from homeassistant.components.sensor import SensorEntity
 
@@ -15,6 +17,9 @@ TRACKED_KEYS = [
     "slonce_prosum_pojutrze_proc",
 ]
 
+_LOGGER: logging.Logger = logging.getLogger(__package__)
+
+
 def fetch_data():
     response = requests.get(API_URL)
     response.raise_for_status()
@@ -29,6 +34,8 @@ def fetch_data():
         # Create a filtered dictionary with only the positive keys
         filtered_data = {key: properties[key] for key in TRACKED_KEYS if key in properties}
         sensors.append(filtered_data)
+
+    logging.info(f"Created [{len(sensors)}] from {data}")
 
     return sensors
 
